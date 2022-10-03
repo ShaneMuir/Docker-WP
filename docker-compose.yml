@@ -1,0 +1,43 @@
+services:
+  db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:10.6.4-focal
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    expose:
+      - 3308:3306
+  wordpress:
+    image: wordpress:latest
+    volumes:
+      - ./:/var/www/html
+    restart: always
+    ports:
+      - '80:80'
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=root
+      - WORDPRESS_DB_NAME=wordpress
+  phpmyadmin: # This service is optional comment out if you don't req phpMyAdmin
+    depends_on:
+      - wordpress
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - '8080:80'
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
+      UPLOAD_LIMIT: 1024M # Added in case database size is big.
+volumes:
+  wordpress: {}
+  db_data: {}
